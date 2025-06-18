@@ -1,5 +1,5 @@
     :root {
-        --primary: #00796b;
+        --primary: #f5f5f5b4;
         --secondary: #009688;
         --bg: #f5f5f5;
         --white: #fff;
@@ -17,7 +17,7 @@
     body {
         margin: 0;
         background: var(--bg);
-        font-family: "Roboto", Arial, sans-serif;
+        font-family: "Roboto", Arial bold, sans-serif;
         color: var(--text);
         min-height: 100vh;
     }
@@ -38,7 +38,6 @@
       max-height: 48px;
       margin-bottom: .3em;
       border-radius: 4px;
-      background: #fff;
       object-fit: contain;
     }
 
@@ -62,11 +61,11 @@
         align-items: center;
         justify-content: center;
         padding: 1rem 0 .5rem 0;
-        background: var(--primary);
+        background: var(--bg);
     }
 
     .sidebar-logo img {
-        max-height: 48px;
+        max-height: 200px;
         max-width: 90%;
     }
 
@@ -147,9 +146,9 @@
     }
 
     header h1 {
-        font-size: 1.4rem;
+        font-size: 2.4rem;
         margin: 0;
-        color: var(--primary);
+        color: var(--text);
         font-weight: 700;
     }
 
@@ -184,7 +183,7 @@
     }
 
     th {
-        background: var(--bg);
+        background: var(--primary);
         color: #444;
         font-weight: 600;
         border-bottom: 2px solid #e0e0e0;
@@ -201,7 +200,7 @@
     }
 
     .btn {
-        padding: .4rem .9rem;
+        padding: 1rem .9rem;
         border: none;
         border-radius: 5px;
         font-size: .97rem;
