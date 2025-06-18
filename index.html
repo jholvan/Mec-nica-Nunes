@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auto Mecânica Nunes</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700&amp;display=swap">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -37,16 +38,13 @@
           <li><button onclick="nav('relatorio')" id="nav-relatorio">📊 Relatório OS</button></li>
         </ul>
       </nav>
-      <button class="logout" onclick="logout()">Sair</button>
     </aside>
     <main class="main">
       <header>
         <h1 id="main-title">Orçamentos</h1>
-        <div class="user">Olá, Administrador</div>
       </header>
       <section id="page-orcamentos">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h2>Orçamentos</h2>
           <button class="btn btn-success" onclick="showOrcamentoForm()">+ Novo Orçamento</button>
         </div>
         <div class="table-wrap">
@@ -119,7 +117,6 @@
       </section>
       <section id="page-os" class="hide">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h2>Ordens de Serviço</h2>
           <button class="btn btn-success" onclick="showOSForm()">+ Nova OS</button>
         </div>
         <div class="table-wrap">
@@ -191,7 +188,6 @@
       </section>
       <section id="page-clientes" class="hide">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h2>Clientes</h2>
           <button class="btn btn-success" onclick="showClienteForm()">+ Novo Cliente</button>
         </div>
         <div class="table-wrap">
@@ -241,7 +237,6 @@
       </section>
       <section id="page-relatorio" class="hide">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-          <h2 style="margin-bottom:1em;">Relatório de Ordens de Serviço</h2>
           <div>
             <label for="filtro-pagamento" style="display:block;margin-bottom:.2em;">Filtrar por pagamento:</label>
             <select id="filtro-pagamento" onchange="renderRelatorio()">
@@ -544,11 +539,11 @@
       const doc = new jsPDF();
 
       function desenharPDF() {
-        doc.setFontSize(18);
+        doc.setFontSize(20);
         doc.setTextColor(0, 121, 107);
-        doc.text("Auto Mecânica Nunes", 14, 22);
+        doc.text("NUNES MECÂNICA AUTOMOTIVA", 14, 22);
 
-        doc.setFontSize(13);
+        doc.setFontSize(17);
         doc.setTextColor(40);
         doc.text("Orçamento de Serviços", 14, 32);
 
@@ -610,7 +605,7 @@
         }
         doc.setFontSize(10);
         doc.setTextColor(150);
-        doc.text("Auto Mecânica Nunes • Obrigado pela confiança!", 14, 285);
+        doc.text("Nunes Mecânica Automotiva • Obrigado pela confiança!", 14, 285);
 
         doc.save(`orcamento-${orc.id}.pdf`);
       }
@@ -625,7 +620,7 @@
       img.src = logoBase64;
       img.onload = function () {
         try {
-          doc.addImage(img, "PNG", 150, 10, 40, 20);
+          doc.addImage(img, "PNG", 130, 10, 80, 40);
         } catch (e) { }
         desenharPDF();
       };
@@ -634,7 +629,7 @@
       };
       if (img.complete) {
         try {
-          doc.addImage(img, "PNG", 150, 10, 40, 20);
+          doc.addImage(img, "PNG", 130, 10, 80, 40);
         } catch (e) { }
         desenharPDF();
       }
