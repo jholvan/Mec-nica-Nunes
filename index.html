@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auto Mecânica Nunes</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700&amp;display=swap">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    /* Add this to your style.css or in a <style> block */
+    .logo-upload.hide {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img id="sidebar-logo-img" src="" alt="Logo Auto Mecânica Nunes" class="logo-preview">
+      </div>
+      <div class="logo-upload">
+        <label for="logo-upload-input" style="cursor:pointer;">
+          <span>Seu logo:</span>
+          <input type="file" id="logo-upload-input" accept="image/png,image/jpeg">
+        </label>
+        <div style="color:#fff;font-size:0.9em;">(PNG/JPG até 200kb)</div>
+      </div>
+      <h2>Auto Mecânica Nunes</h2>
+      <nav>
+        <ul>
+          <li><button onclick="nav('orcamentos')" id="nav-orcamentos" class="active">💳 Orçamentos</button></li>
+          <li><button onclick="nav('os')" id="nav-os">🔧 Ordens de Serviço</button></li>
+          <li><button onclick="nav('clientes')" id="nav-clientes">👤 Clientes</button></li>
+          <li><button onclick="nav('relatorio')" id="nav-relatorio">📊 Relatório OS</button></li>
+        </ul>
+      </nav>
+      <button class="logout" onclick="logout()">Sair</button>
+    </aside>
+    <main class="main">
+      <header>
+        <h1 id="main-title">Orçamentos</h1>
+        <div class="user">Olá, Administrador</div>
+      </header>
+      <section id="page-orcamentos">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h2>Orçamentos</h2>
+          <button class="btn btn-success" onclick="showOrcamentoForm()">+ Novo Orçamento</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Veículo</th>
+                <th>Itens</th>
+                <th>Valor Total</th>
+                <th>Status</th>
+                <th>Validade</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="orc-table"></tbody>
+          </table>
+        </div>
+        <div id="orc-form-wrap" class="hide">
+          <h3 id="orc-form-title">Novo Orçamento</h3>
+          <form onsubmit="salvarOrcamento(event)">
+            <input type="hidden" id="orc-form-id">
+            <div class="flex-row">
+              <div style="flex:1" class="flex-col">
+                <label>Cliente</label>
+                <select id="orc-form-cliente" required="" onchange="popularVeiculosOrcamento()">
+                  <option value="">Selecione</option>
+                </select>
+              </div>
+              <div style="flex:1" class="flex-col">
+                <label>Veículo</label>
+                <select id="orc-form-veiculo" required="">
+                  <option value="">Selecione um cliente primeiro</option>
+                </select>
+              </div>
+            </div>
+
+            <label>Itens do Orçamento</label>
+            <div>
+              <div style="display:flex;gap:7px;margin-bottom:.5em;">
+                <input type="text" id="orc-item-nome"
+                  placeholder="Descrição do item (ex: Troca de óleo ou Pastilha de freio)" style="flex:2;">
+                <input type="number" id="orc-item-valor" placeholder="Valor (R$)" style="flex:1;">
+                <button type="button" class="btn btn-sm btn-outline"
+                  onclick="adicionarItemOrcamento()">Adicionar</button>
+              </div>
+              <div id="orc-itens-list"></div>
+            </div>
+            <label>Valor Total</label>
+            <input type="number" id="orc-form-valor" required="" placeholder="R$" readonly="">
+
+            <label>Status</label>
+            <select id="orc-form-status">
+              <option>Pendente</option>
+              <option>Aprovado</option>
+              <option>Reprovado</option>
+              <option>Expirado</option>
+            </select>
+            <label>Validade</label>
+            <input type="date" id="orc-form-validade" required="">
+            <label>Observações</label>
+            <textarea id="orc-form-obs" placeholder="Notas adicionais"></textarea>
+            <div class="form-actions">
+              <button class="btn btn-success" type="submit">Salvar Orçamento</button>
+              <button class="btn btn-outline" onclick="hideOrcamentoForm();return false;">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </section>
+      <section id="page-os" class="hide">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h2>Ordens de Serviço</h2>
+          <button class="btn btn-success" onclick="showOSForm()">+ Nova OS</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Veículo</th>
+                <th>Forma Pagamento</th>
+                <th>Status</th>
+                <th>Entrada</th>
+                <th>Saída Prevista</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="os-table"></tbody>
+          </table>
+        </div>
+        <div id="os-form-wrap" class="hide">
+          <h3 id="os-form-title">Nova Ordem de Serviço</h3>
+          <form onsubmit="salvarOS(event)">
+            <input type="hidden" id="os-form-id">
+            <div class="flex-row">
+              <div style="flex:1" class="flex-col">
+                <label>Cliente</label>
+                <select id="os-form-cliente" required="" onchange="popularVeiculosOS()">
+                  <option value="">Selecione</option>
+                </select>
+              </div>
+              <div style="flex:1" class="flex-col">
+                <label>Veículo</label>
+                <select id="os-form-veiculo" required="">
+                  <option value="">Selecione um cliente primeiro</option>
+                </select>
+              </div>
+            </div>
+            <label>Serviços/Peças</label>
+            <input type="text" id="os-form-descricao" placeholder="Descrição dos serviços/peças">
+            <label>Valor Total</label>
+            <input type="number" id="os-form-valor" required="" placeholder="R$">
+            <label>Forma de Pagamento</label>
+            <select id="os-form-pagamento" required="">
+              <option value="">Selecione</option>
+              <option>Dinheiro</option>
+              <option>Cartão de Crédito</option>
+              <option>Cartão de Débito</option>
+              <option>Pix</option>
+              <option>Boleto</option>
+            </select>
+            <label>Data Entrada</label>
+            <input type="date" id="os-form-entrada" required="">
+            <label>Data Saída Prevista</label>
+            <input type="date" id="os-form-saida" required="">
+            <label>Status</label>
+            <select id="os-form-status" required="">
+              <option>Em andamento</option>
+              <option>Finalizado</option>
+              <option>Aguardando peça</option>
+              <option>Aguardando aprovação</option>
+              <option>Entregue</option>
+            </select>
+            <div class="form-actions">
+              <button class="btn btn-success" type="submit">Salvar OS</button>
+              <button class="btn btn-outline" onclick="hideOSForm();return false;">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </section>
+      <section id="page-clientes" class="hide">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h2>Clientes</h2>
+          <button class="btn btn-success" onclick="showClienteForm()">+ Novo Cliente</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Email</th>
+                <th>Veículos</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="clientes-table"></tbody>
+          </table>
+        </div>
+        <div id="cliente-form-wrap" class="hide">
+          <h3 id="cliente-form-title">Novo Cliente</h3>
+          <form onsubmit="salvarCliente(event)">
+            <input type="hidden" id="cli-id">
+            <div class="flex-row">
+              <div style="flex:1" class="flex-col">
+                <label>Nome</label>
+                <input type="text" id="cli-nome" required="">
+                <label>Telefone</label>
+                <input type="tel" id="cli-telefone">
+                <label>Email</label>
+                <input type="email" id="cli-email">
+              </div>
+              <div style="flex:1" class="flex-col">
+                <label>Adicionar Veículo</label>
+                <input type="text" id="cli-veiculo-marca" placeholder="Marca/Modelo">
+                <input type="text" id="cli-veiculo-placa" placeholder="Placa">
+                <input type="number" id="cli-veiculo-ano" placeholder="Ano">
+                <input type="text" id="cli-veiculo-cor" placeholder="Cor">
+                <button type="button" class="btn btn-sm btn-outline" onclick="adicionarVeiculo()">Adicionar à
+                  lista</button>
+                <div id="veiculos-adicionados"></div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-success" type="submit">Salvar Cliente</button>
+              <button class="btn btn-outline" onclick="hideClienteForm();return false;">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </section>
+      <section id="page-relatorio" class="hide">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+          <h2 style="margin-bottom:1em;">Relatório de Ordens de Serviço</h2>
+          <div>
+            <label for="filtro-pagamento" style="display:block;margin-bottom:.2em;">Filtrar por pagamento:</label>
+            <select id="filtro-pagamento" onchange="renderRelatorio()">
+              <option value="">Todas</option>
+              <option>Dinheiro</option>
+              <option>Cartão de Crédito</option>
+              <option>Cartão de Débito</option>
+              <option>Pix</option>
+              <option>Boleto</option>
+            </select>
+          </div>
+          <button class="btn btn-success" style="margin-top:1em;" onclick="baixarPDF()">Baixar PDF</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Veículo</th>
+                <th>Valor</th>
+                <th>Forma Pagamento</th>
+                <th>Status</th>
+                <th>Entrada</th>
+                <th>Saída</th>
+              </tr>
+            </thead>
+            <tbody id="relatorio-table"></tbody>
+          </table>
+        </div>
+      </section>
+      <div id="notif" class="notif hide"></div>
+    </main>
+  </div>
+  <script>
+    // Dados persistentes em localStorage
+    function loadData() {
+      window.clientes = JSON.parse(localStorage.getItem("oficina_clientes") || "[]");
+      window.osList = JSON.parse(localStorage.getItem("oficina_os") || "[]");
+      window.orcList = JSON.parse(localStorage.getItem("oficina_orc") || "[]");
+      if (!window.clientes.length) {
+        window.clientes = [
+          {
+            id: 1,
+            nome: "João Silva",
+            telefone: "(11) 99999-0000",
+            email: "joao@email.com",
+            veiculos: [
+              { marca: "Ford Fiesta", placa: "ABC-1234", ano: 2016, cor: "Preto" },
+              { marca: "Toyota Corolla", placa: "DEF-5678", ano: 2018, cor: "Prata" }
+            ]
+          },
+          {
+            id: 2,
+            nome: "Maria Souza",
+            telefone: "(11) 98888-1111",
+            email: "maria@email.com",
+            veiculos: [
+              { marca: "Honda Fit", placa: "XYZ-8899", ano: 2015, cor: "Vermelho" }
+            ]
+          }
+        ];
+        saveData();
+      }
+    }
+    function getLogoBase64() {
+      return localStorage.getItem('oficina_logo_base64') || "";
+    }
+    function setLogoBase64(base64) {
+      localStorage.setItem('oficina_logo_base64', base64 || "");
+      document.getElementById('sidebar-logo-img').src = base64 || "";
+      const logoUploadDiv = document.querySelector('.logo-upload');
+      if (base64) {
+        logoUploadDiv.classList.add('hide'); // Hide the upload section
+      } else {
+        logoUploadDiv.classList.remove('hide'); // Show if no logo
+      }
+    }
+    // Inicializar logo ao abrir
+    window.addEventListener('DOMContentLoaded', function () {
+      setLogoBase64(getLogoBase64());
+    });
+    // Upload de logo
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('logo-upload-input').addEventListener('change', function (e) {
+        const file = this.files[0];
+        if (!file) return;
+        if (!file.type.match(/image\/(png|jpeg)/)) {
+          alert("Envie uma imagem PNG ou JPG.");
+          return;
+        }
+        if (file.size > 200 * 1024) {
+          alert("Imagem deve ter até 200kb.");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          setLogoBase64(ev.target.result);
+          notificar("Logo atualizada!");
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+    function saveData() {
+      localStorage.setItem("oficina_clientes", JSON.stringify(window.clientes));
+      localStorage.setItem("oficina_os", JSON.stringify(window.osList));
+      localStorage.setItem("oficina_orc", JSON.stringify(window.orcList));
+    }
+    function getClienteById(id) { return window.clientes.find(c => c.id == id); }
+    function getOrcById(id) { return window.orcList.find(o => o.id == id); }
+    function getOSById(id) { return window.osList.find(o => o.id == id); }
+    function gerarId(lista) { return (lista.length ? Math.max(...lista.map(e => e.id || 0)) : 0) + 1; }
+
+    function nav(page) {
+      document.getElementById('main-title').textContent = ({
+        orcamentos: "Orçamentos",
+        os: "Ordens de Serviço",
+        clientes: "Clientes",
+        relatorio: "Relatório de OS"
+      })[page];
+      document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('nav-' + page).classList.add('active');
+      document.querySelectorAll('main section').forEach(sec => sec.classList.add('hide'));
+      document.getElementById('page-' + page).classList.remove('hide');
+      hideOrcamentoForm(); hideClienteForm(); hideOSForm();
+      if (page === "clientes") renderClientes();
+      if (page === "os") renderOS();
+      if (page === "orcamentos") renderOrcamentos();
+      if (page === "relatorio") renderRelatorio();
+    }
+    function notificar(msg) {
+      const n = document.getElementById('notif');
+      n.textContent = msg;
+      n.classList.remove('hide');
+      setTimeout(() => n.classList.add('hide'), 1800);
+    }
+    function logout() { notificar("Você saiu!"); }
+
+    // -------- ITENS DO ORÇAMENTO ---------
+    let orcamentoItensTmp = [];
+    function adicionarItemOrcamento() {
+      const nome = document.getElementById('orc-item-nome').value.trim();
+      const valor = parseFloat(document.getElementById('orc-item-valor').value);
+      if (nome && valor && valor > 0) {
+        orcamentoItensTmp.push({ nome, valor });
+        document.getElementById('orc-item-nome').value = '';
+        document.getElementById('orc-item-valor').value = '';
+        renderOrcamentoItens();
+      }
+    }
+    function removerItemOrcamento(idx) {
+      orcamentoItensTmp.splice(idx, 1);
+      renderOrcamentoItens();
+    }
+    function renderOrcamentoItens() {
+      const div = document.getElementById('orc-itens-list');
+      if (!orcamentoItensTmp.length) {
+        div.innerHTML = "<em>Nenhum item adicionado</em>";
+        document.getElementById('orc-form-valor').value = '';
+        return;
+      }
+      let total = 0;
+      div.innerHTML = '<table style="width:100%;font-size:.97em;"><tbody>' +
+        orcamentoItensTmp.map((item, i) => `
+        <tr>
+          <td>${item.nome}</td>
+          <td style="width:80px;">R$ ${item.valor.toLocaleString('pt-BR')}</td>
+          <td style="width:60px;">
+            <button type="button" class="btn btn-sm btn-danger" onclick="removerItemOrcamento(${i})">Remover</button>
+          </td>
+        </tr>
+      `).join("") +
+        '</tbody></table>';
+      total = orcamentoItensTmp.reduce((acc, it) => acc + it.valor, 0);
+      document.getElementById('orc-form-valor').value = total.toFixed(2);
+    }
+    // -------- FIM ITENS DO ORÇAMENTO ---------
+
+    // --- Orçamentos ---
+    function renderOrcamentos() {
+      let tbody = document.getElementById('orc-table');
+      tbody.innerHTML = '';
+      window.orcList.forEach(or => {
+        let cli = getClienteById(or.clienteId);
+        let veic = cli && cli.veiculos[or.veiculoIdx];
+        tbody.innerHTML += `<tr>
+        <td>${or.id}</td>
+        <td>${cli ? cli.nome : '-'}</td>
+        <td>${veic ? veic.marca + " (" + veic.placa + ")" : '-'}</td>
+        <td>
+          <ul style="padding-left:1em;margin:0;">
+            ${or.itens ? or.itens.map(it => `<li>${it.nome} - R$ ${it.valor.toLocaleString('pt-BR')}</li>`).join("") : "-"}
+          </ul>
+        </td>
+        <td>R$ ${(+or.valor).toLocaleString('pt-BR')}</td>
+        <td>${or.status}</td>
+        <td>${formatarData(or.validade)}</td>
+        <td>
+          <button class="btn btn-sm" onclick="editarOrcamento(${or.id})">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="excluirOrcamento(${or.id})">Excluir</button>
+          <button class="btn btn-sm btn-success" onclick="baixarOrcamentoPDF(${or.id})">PDF</button>
+        </td>
+      </tr>`;
+      });
+    }
+    function showOrcamentoForm(editId) {
+      document.getElementById('orc-form-wrap').classList.remove('hide');
+      document.getElementById('orc-form-title').textContent = editId ? "Editar Orçamento" : "Novo Orçamento";
+      document.getElementById('orc-form-id').value = editId || '';
+      popularClientesOrcamento();
+      if (editId) {
+        const o = getOrcById(editId);
+        document.getElementById('orc-form-cliente').value = o.clienteId;
+        popularVeiculosOrcamento();
+        document.getElementById('orc-form-veiculo').value = o.veiculoIdx;
+        orcamentoItensTmp = o.itens ? JSON.parse(JSON.stringify(o.itens)) : [];
+        renderOrcamentoItens();
+        document.getElementById('orc-form-status').value = o.status;
+        document.getElementById('orc-form-validade').value = o.validade;
+        document.getElementById('orc-form-obs').value = o.obs || '';
+      } else {
+        document.getElementById('orc-form-cliente').selectedIndex = 0;
+        popularVeiculosOrcamento();
+        document.getElementById('orc-form-veiculo').selectedIndex = 0;
+        orcamentoItensTmp = [];
+        renderOrcamentoItens();
+        document.getElementById('orc-form-status').selectedIndex = 0;
+        document.getElementById('orc-form-validade').value = '';
+        document.getElementById('orc-form-obs').value = '';
+      }
+    }
+    function hideOrcamentoForm() {
+      document.getElementById('orc-form-wrap').classList.add('hide');
+    }
+    function salvarOrcamento(e) {
+      e.preventDefault();
+      let id = document.getElementById('orc-form-id').value;
+      let clienteId = +document.getElementById('orc-form-cliente').value;
+      let veiculoIdx = +document.getElementById('orc-form-veiculo').value;
+      let itens = JSON.parse(JSON.stringify(orcamentoItensTmp));
+      let valor = +document.getElementById('orc-form-valor').value;
+      let status = document.getElementById('orc-form-status').value;
+      let validade = document.getElementById('orc-form-validade').value;
+      let obs = document.getElementById('orc-form-obs').value;
+      if (!clienteId || isNaN(veiculoIdx) || !valor || !validade || !itens.length) {
+        notificar("Preencha todos os campos obrigatórios e ao menos um item!");
+        return;
+      }
+      if (id) {
+        let o = getOrcById(+id);
+        Object.assign(o, { clienteId, veiculoIdx, itens, valor, status, validade, obs });
+        notificar("Orçamento atualizado!");
+      } else {
+        window.orcList.push({ id: gerarId(window.orcList), clienteId, veiculoIdx, itens, valor, status, validade, obs });
+        notificar("Orçamento cadastrado!");
+      }
+      saveData(); hideOrcamentoForm(); renderOrcamentos();
+    }
+    function excluirOrcamento(id) {
+      if (confirm('Excluir este orçamento?')) {
+        window.orcList = window.orcList.filter(o => o.id != id);
+        saveData(); renderOrcamentos();
+      }
+    }
+    function editarOrcamento(id) { showOrcamentoForm(id); }
+    function popularClientesOrcamento() {
+      let select = document.getElementById('orc-form-cliente');
+      select.innerHTML = '<option value="">Selecione</option>';
+      window.clientes.forEach((cli, idx) => {
+        let op = document.createElement('option');
+        op.value = cli.id;
+        op.textContent = cli.nome;
+        select.appendChild(op);
+      });
+      popularVeiculosOrcamento();
+    }
+    function popularVeiculosOrcamento() {
+      let cliId = document.getElementById('orc-form-cliente').value;
+      let select = document.getElementById('orc-form-veiculo');
+      let cli = getClienteById(cliId);
+      select.innerHTML = '<option value="">Selecione um cliente primeiro</option>';
+      if (cli && cli.veiculos.length) {
+        select.innerHTML = '';
+        cli.veiculos.forEach((v, i) => {
+          let op = document.createElement('option');
+          op.value = i;
+          op.textContent = v.marca + " (" + v.placa + ")";
+          select.appendChild(op);
+        });
+      }
+    }
+
+    function baixarOrcamentoPDF(orcId) {
+      const orc = getOrcById(orcId);
+      const cli = getClienteById(orc.clienteId);
+      const veic = cli && cli.veiculos[orc.veiculoIdx];
+      const logoBase64 = getLogoBase64();
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      function desenharPDF() {
+        doc.setFontSize(18);
+        doc.setTextColor(0, 121, 107);
+        doc.text("Auto Mecânica Nunes", 14, 22);
+
+        doc.setFontSize(13);
+        doc.setTextColor(40);
+        doc.text("Orçamento de Serviços", 14, 32);
+
+        doc.setFontSize(11);
+        let y = 42;
+
+        doc.setFont(undefined, "bold");
+        doc.text("Cliente:", 14, y);
+        doc.setFont(undefined, "normal");
+        doc.text(cli ? cli.nome : "-", 40, y);
+
+        y += 8;
+        doc.setFont(undefined, "bold");
+        doc.text("Veículo:", 14, y);
+        doc.setFont(undefined, "normal");
+        doc.text(veic ? `${veic.marca} (${veic.placa})${veic.ano ? ", " + veic.ano : ""}${veic.cor ? ", " + veic.cor : ""}` : "-", 40, y);
+
+        y += 8;
+        doc.setFont(undefined, "bold");
+        doc.text("Itens:", 14, y);
+        doc.setFont(undefined, "normal");
+        if (orc.itens && orc.itens.length) {
+          orc.itens.forEach(it => {
+            y += 6;
+            doc.text(`- ${it.nome}: R$ ${it.valor.toLocaleString('pt-BR')}`, 18, y);
+          });
+        } else {
+          y += 6;
+          doc.text("-", 18, y);
+        }
+        y += 8;
+        doc.setFont(undefined, "bold");
+        doc.setTextColor(33, 153, 102);
+        doc.text("Valor Total:", 14, y);
+        doc.setFont(undefined, "normal");
+        doc.text(`R$ ${(+orc.valor).toLocaleString('pt-BR')}`, 40, y);
+        doc.setTextColor(40);
+
+        y += 8;
+        doc.setFont(undefined, "bold");
+        doc.text("Status:", 14, y);
+        doc.setFont(undefined, "normal");
+        doc.text(orc.status, 40, y);
+
+        y += 8;
+        doc.setFont(undefined, "bold");
+        doc.text("Validade:", 14, y);
+        doc.setFont(undefined, "normal");
+        doc.text(formatarData(orc.validade), 40, y);
+
+        y += 8;
+        if (orc.obs) {
+          doc.setFont(undefined, "bold");
+          doc.text("Observações:", 14, y);
+          doc.setFont(undefined, "normal");
+          y += 6;
+          doc.text(doc.splitTextToSize(orc.obs, 180), 14, y);
+          y += 10;
+        }
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text("Auto Mecânica Nunes • Obrigado pela confiança!", 14, 285);
+
+        doc.save(`orcamento-${orc.id}.pdf`);
+      }
+
+      if (!logoBase64) {
+        desenharPDF();
+        return;
+      }
+
+      // Adiciona a imagem base64 no canto superior direito
+      const img = new window.Image();
+      img.src = logoBase64;
+      img.onload = function () {
+        try {
+          doc.addImage(img, "PNG", 150, 10, 40, 20);
+        } catch (e) { }
+        desenharPDF();
+      };
+      img.onerror = function () {
+        desenharPDF();
+      };
+      if (img.complete) {
+        try {
+          doc.addImage(img, "PNG", 150, 10, 40, 20);
+        } catch (e) { }
+        desenharPDF();
+      }
+    }
+
+    // --- OS ---
+    function renderOS() {
+      let tbody = document.getElementById('os-table');
+      tbody.innerHTML = '';
+      window.osList.forEach(os => {
+        let cli = getClienteById(os.clienteId);
+        let veic = cli && cli.veiculos[os.veiculoIdx];
+        tbody.innerHTML += `<tr>
+        <td>${os.id}</td>
+        <td>${cli ? cli.nome : '-'}</td>
+        <td>${veic ? veic.marca + " (" + veic.placa + ")" : '-'}</td>
+        <td>${os.pagamento || '-'}</td>
+        <td>${os.status || '-'}</td>
+        <td>${formatarData(os.entrada)}</td>
+        <td>${formatarData(os.saida)}</td>
+        <td>
+          <button class="btn btn-sm" onclick="editarOS(${os.id})">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="excluirOS(${os.id})">Excluir</button>
+        </td>
+      </tr>`;
+      });
+    }
+    function showOSForm(editId) {
+      document.getElementById('os-form-wrap').classList.remove('hide');
+      document.getElementById('os-form-title').textContent = editId ? "Editar OS" : "Nova Ordem de Serviço";
+      document.getElementById('os-form-id').value = editId || '';
+      popularClientesOS();
+      if (editId) {
+        const o = getOSById(editId);
+        document.getElementById('os-form-cliente').value = o.clienteId;
+        popularVeiculosOS();
+        document.getElementById('os-form-veiculo').value = o.veiculoIdx;
+        document.getElementById('os-form-descricao').value = o.descricao || '';
+        document.getElementById('os-form-valor').value = o.valor;
+        document.getElementById('os-form-pagamento').value = o.pagamento;
+        document.getElementById('os-form-entrada').value = o.entrada;
+        document.getElementById('os-form-saida').value = o.saida;
+        document.getElementById('os-form-status').value = o.status;
+      } else {
+        document.getElementById('os-form-cliente').selectedIndex = 0;
+        popularVeiculosOS();
+        document.getElementById('os-form-veiculo').selectedIndex = 0;
+        document.getElementById('os-form-descricao').value = '';
+        document.getElementById('os-form-valor').value = '';
+        document.getElementById('os-form-pagamento').selectedIndex = 0;
+        document.getElementById('os-form-entrada').value = '';
+        document.getElementById('os-form-saida').value = '';
+        document.getElementById('os-form-status').selectedIndex = 0;
+      }
+    }
+    function hideOSForm() {
+      document.getElementById('os-form-wrap').classList.add('hide');
+    }
+    function salvarOS(e) {
+      e.preventDefault();
+      let id = document.getElementById('os-form-id').value;
+      let clienteId = +document.getElementById('os-form-cliente').value;
+      let veiculoIdx = +document.getElementById('os-form-veiculo').value;
+      let descricao = document.getElementById('os-form-descricao').value;
+      let valor = +document.getElementById('os-form-valor').value;
+      let pagamento = document.getElementById('os-form-pagamento').value;
+      let entrada = document.getElementById('os-form-entrada').value;
+      let saida = document.getElementById('os-form-saida').value;
+      let status = document.getElementById('os-form-status').value;
+      if (!clienteId || isNaN(veiculoIdx) || !valor || !pagamento || !entrada || !saida || !status) return;
+      if (id) {
+        let o = getOSById(+id);
+        Object.assign(o, { clienteId, veiculoIdx, descricao, valor, pagamento, entrada, saida, status });
+        notificar("OS atualizada!");
+      } else {
+        window.osList.push({ id: gerarId(window.osList), clienteId, veiculoIdx, descricao, valor, pagamento, entrada, saida, status });
+        notificar("OS cadastrada!");
+      }
+      saveData(); hideOSForm(); renderOS(); renderRelatorio();
+    }
+    function excluirOS(id) {
+      if (confirm('Excluir esta OS?')) {
+        window.osList = window.osList.filter(o => o.id != id);
+        saveData(); renderOS(); renderRelatorio();
+      }
+    }
+    function editarOS(id) { showOSForm(id); }
+    function popularClientesOS() {
+      let select = document.getElementById('os-form-cliente');
+      select.innerHTML = '<option value="">Selecione</option>';
+      window.clientes.forEach((cli) => {
+        let op = document.createElement('option');
+        op.value = cli.id;
+        op.textContent = cli.nome;
+        select.appendChild(op);
+      });
+      popularVeiculosOS();
+    }
+    function popularVeiculosOS() {
+      let cliId = document.getElementById('os-form-cliente').value;
+      let select = document.getElementById('os-form-veiculo');
+      let cli = getClienteById(cliId);
+      select.innerHTML = '<option value="">Selecione um cliente primeiro</option>';
+      if (cli && cli.veiculos.length) {
+        select.innerHTML = '';
+        cli.veiculos.forEach((v, i) => {
+          let op = document.createElement('option');
+          op.value = i;
+          op.textContent = v.marca + " (" + v.placa + ")";
+          select.appendChild(op);
+        });
+      }
+    }
+    // --- Clientes ---
+    let veiculosTmp = [];
+    function renderClientes() {
+      let tbody = document.getElementById('clientes-table');
+      tbody.innerHTML = '';
+      window.clientes.forEach((cli, i) => {
+        let veiculos = cli.veiculos.map((v, vi) =>
+          `<div>
+          ${v.marca} (${v.placa}, ${v.ano}${v.cor ? ", " + v.cor : ""})
+          <button class="btn btn-sm btn-outline" onclick="editarVeiculo(${cli.id},${vi})">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="excluirVeiculo(${cli.id},${vi})">Remover</button>
+        </div>`
+        ).join("");
+        tbody.innerHTML += `<tr>
+        <td>${cli.nome}</td>
+        <td>${cli.telefone}</td>
+        <td>${cli.email}</td>
+        <td>${veiculos || '<em>Nenhum veículo</em>'}</td>
+        <td>
+          <button class="btn btn-sm" onclick="editarCliente(${cli.id})">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="excluirCliente(${cli.id})">Excluir</button>
+        </td>
+      </tr>`;
+      });
+    }
+    function showClienteForm(editId) {
+      document.getElementById('cliente-form-wrap').classList.remove('hide');
+      document.getElementById('cliente-form-title').textContent = editId ? "Editar Cliente" : "Novo Cliente";
+      document.getElementById('cli-id').value = editId || '';
+      if (editId) {
+        let cli = getClienteById(editId);
+        document.getElementById('cli-nome').value = cli.nome;
+        document.getElementById('cli-telefone').value = cli.telefone;
+        document.getElementById('cli-email').value = cli.email;
+        veiculosTmp = JSON.parse(JSON.stringify(cli.veiculos));
+        renderVeiculosAdicionados();
+      } else {
+        document.getElementById('cli-nome').value = '';
+        document.getElementById('cli-telefone').value = '';
+        document.getElementById('cli-email').value = '';
+        veiculosTmp = [];
+        renderVeiculosAdicionados();
+      }
+    }
+    function hideClienteForm() {
+      document.getElementById('cliente-form-wrap').classList.add('hide');
+    }
+    function adicionarVeiculo() {
+      let marca = document.getElementById('cli-veiculo-marca').value.trim();
+      let placa = document.getElementById('cli-veiculo-placa').value.trim();
+      let ano = document.getElementById('cli-veiculo-ano').value.trim();
+      let cor = document.getElementById('cli-veiculo-cor').value.trim();
+      if (marca && placa && ano) {
+        veiculosTmp.push({ marca, placa, ano, cor });
+        renderVeiculosAdicionados();
+        document.getElementById('cli-veiculo-marca').value = '';
+        document.getElementById('cli-veiculo-placa').value = '';
+        document.getElementById('cli-veiculo-ano').value = '';
+        document.getElementById('cli-veiculo-cor').value = '';
+      }
+    }
+    function removerVeiculo(idx) {
+      veiculosTmp.splice(idx, 1);
+      renderVeiculosAdicionados();
+    }
+    function renderVeiculosAdicionados() {
+      let div = document.getElementById('veiculos-adicionados');
+      if (veiculosTmp.length === 0) {
+        div.innerHTML = "<em>Nenhum veículo adicionado</em>";
+        return;
+      }
+      div.innerHTML = veiculosTmp.map((v, i) =>
+        `<div>
+        ${v.marca} (${v.placa}, ${v.ano}${v.cor ? ", " + v.cor : ""})
+        <button type="button" class="btn btn-sm btn-danger" onclick="removerVeiculo(${i})">Remover</button>
+      </div>`
+      ).join("");
+    }
+    function salvarCliente(e) {
+      e.preventDefault();
+      let id = document.getElementById('cli-id').value;
+      let nome = document.getElementById('cli-nome').value.trim();
+      let telefone = document.getElementById('cli-telefone').value.trim();
+      let email = document.getElementById('cli-email').value.trim();
+      if (nome && veiculosTmp.length > 0) {
+        if (id) {
+          let cli = getClienteById(+id);
+          Object.assign(cli, { nome, telefone, email, veiculos: JSON.parse(JSON.stringify(veiculosTmp)) });
+          notificar("Cliente atualizado!");
+        } else {
+          window.clientes.push({ id: gerarId(window.clientes), nome, telefone, email, veiculos: JSON.parse(JSON.stringify(veiculosTmp)) });
+          notificar("Cliente cadastrado!");
+        }
+        saveData(); hideClienteForm(); renderClientes();
+      } else {
+        notificar("Informe nome e ao menos um veículo.");
+      }
+    }
+    function editarCliente(id) { showClienteForm(id); }
+    function excluirCliente(id) {
+      if (confirm('Excluir este cliente (e todos seus veículos)?')) {
+        window.clientes = window.clientes.filter(c => c.id != id);
+        saveData(); renderClientes();
+      }
+    }
+    function editarVeiculo(cliId, veicIdx) {
+      let cli = getClienteById(cliId);
+      let v = cli.veiculos[veicIdx];
+      let marca = prompt("Marca/Modelo:", v.marca);
+      let placa = prompt("Placa:", v.placa);
+      let ano = prompt("Ano:", v.ano);
+      let cor = prompt("Cor:", v.cor || "");
+      if (marca && placa && ano) {
+        Object.assign(v, { marca, placa, ano, cor });
+        saveData(); renderClientes();
+      }
+    }
+    function excluirVeiculo(cliId, veicIdx) {
+      let cli = getClienteById(cliId);
+      if (confirm('Remover este veículo?')) {
+        cli.veiculos.splice(veicIdx, 1);
+        saveData(); renderClientes();
+      }
+    }
+    // --- Relatório OS ---
+    function renderRelatorio() {
+      let filtro = document.getElementById('filtro-pagamento').value;
+      let tbody = document.getElementById('relatorio-table');
+      tbody.innerHTML = '';
+      let total = 0;
+      let count = 0;
+      window.osList.forEach(os => {
+        if (filtro && os.pagamento !== filtro) return;
+        let cli = getClienteById(os.clienteId);
+        let veic = cli && cli.veiculos[os.veiculoIdx];
+        tbody.innerHTML += `
+        <tr>
+          <td>${os.id}</td>
+          <td>${cli ? cli.nome : '-'}</td>
+          <td>${veic ? veic.marca + " (" + veic.placa + ")" + (veic.cor ? ", " + veic.cor : "") : '-'}</td>
+          <td>R$ ${(+os.valor).toLocaleString('pt-BR')}</td>
+          <td>${os.pagamento || '-'}</td>
+          <td>${os.status || '-'}</td>
+          <td>${formatarData(os.entrada)}</td>
+          <td>${formatarData(os.saida)}</td>
+        </tr>
+      `;
+        total += +os.valor;
+        count++;
+      });
+      if (count === 0) {
+        tbody.innerHTML = '<tr><td colspan="8"><em>Nenhuma OS encontrada para o filtro</em></td></tr>';
+      } else {
+        tbody.innerHTML += `
+        <tr class="total-row">
+          <td colspan="3" style="text-align:right;">Total</td>
+          <td colspan="5"><b>R$ ${total.toLocaleString('pt-BR')}</b></td>
+        </tr>
+      `;
+      }
+    }
+    function baixarPDF() {
+      let filtro = document.getElementById('filtro-pagamento').value;
+      let rows = [];
+      let total = 0;
+      window.osList.forEach(os => {
+        if (filtro && os.pagamento !== filtro) return;
+        let cli = getClienteById(os.clienteId);
+        let veic = cli && cli.veiculos[os.veiculoIdx];
+        rows.push([
+          os.id,
+          cli ? cli.nome : '-',
+          veic ? veic.marca + " (" + veic.placa + ")" + (veic.cor ? ", " + veic.cor : "") : '-',
+          "R$ " + (+os.valor).toLocaleString('pt-BR'),
+          os.pagamento || '-',
+          os.status || '-',
+          formatarData(os.entrada),
+          formatarData(os.saida)
+        ]);
+        total += +os.valor;
+      });
+      if (rows.length === 0) {
+        notificar("Nenhuma OS para exportar!");
+        return;
+      }
+      rows.push([
+        { content: 'Total', colSpan: 3, styles: { halign: 'right' } },
+        { content: "R$ " + total.toLocaleString('pt-BR'), colSpan: 5, styles: { halign: 'left', fontStyle: 'bold' } }
+      ]);
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Relatório de Ordens de Serviço", 14, 18);
+      if (filtro) doc.text("Filtro: " + filtro, 14, 26);
+      doc.autoTable({
+        head: [[
+          '#', 'Cliente', 'Veículo', 'Valor', 'Forma Pagamento', 'Status', 'Entrada', 'Saída'
+        ]],
+        body: rows,
+        startY: filtro ? 30 : 26,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [0, 121, 107] }
+      });
+      doc.save('relatorio-os.pdf');
+    }
+    function formatarData(dt) {
+      if (!dt) return "";
+      let d = new Date(dt);
+      if (isNaN(d.getTime())) return dt;
+      let dia = ("0" + d.getDate()).slice(-2);
+      let mes = ("0" + (d.getMonth() + 1)).slice(-2);
+      let ano = d.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+    // Inicialização
+    loadData();
+    nav('orcamentos');
+    renderClientes();
+    renderOS();
+    renderOrcamentos();
+  </script>
+
+
+</body>
+
+</html>
