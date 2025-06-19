@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-
-<head>
+<!DOCTYPE html><html lang="pt-BR"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Auto Mecânica Nunes</title>
+  <title>Nunes Mecânica Automotiva</title>
   <link rel="stylesheet" href="style.css">
+  <link href="logonunes.png" type="image/png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700&amp;display=swap">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <style>
-    /* Add this to your style.css or in a <style> block */
     .logo-upload.hide {
       display: none;
     }
@@ -86,11 +83,9 @@
             <label>Itens do Orçamento</label>
             <div>
               <div style="display:flex;gap:7px;margin-bottom:.5em;">
-                <input type="text" id="orc-item-nome"
-                  placeholder="Descrição do item (ex: Troca de óleo ou Pastilha de freio)" style="flex:2;">
+                <input type="text" id="orc-item-nome" placeholder="Descrição do item (ex: Troca de óleo ou Pastilha de freio)" style="flex:2;">
                 <input type="number" id="orc-item-valor" placeholder="Valor (R$)" style="flex:1;">
-                <button type="button" class="btn btn-sm btn-outline"
-                  onclick="adicionarItemOrcamento()">Adicionar</button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="adicionarItemOrcamento()">Adicionar</button>
               </div>
               <div id="orc-itens-list"></div>
             </div>
@@ -438,10 +433,62 @@
           <button class="btn btn-sm" onclick="editarOrcamento(${or.id})">Editar</button>
           <button class="btn btn-sm btn-danger" onclick="excluirOrcamento(${or.id})">Excluir</button>
           <button class="btn btn-sm btn-success" onclick="baixarOrcamentoPDF(${or.id})">PDF</button>
+          ${or.status === "Aprovado"
+            ? `<button class="btn btn-sm btn-success" onclick="gerarOSdeOrcamento(${or.id})">Gerar OS</button>`
+            : ""}
         </td>
       </tr>`;
       });
     }
+
+    // GERAR OS AUTOMATICAMENTE SEM FORMULÁRIO
+    function gerarOSdeOrcamento(orcId) {
+      const orc = getOrcById(orcId);
+      if (!orc) return;
+
+      const clienteId = orc.clienteId;
+      const veiculoIdx = orc.veiculoIdx;
+      const descricao = (orc.itens || []).map(it => it.nome).join(', ');
+      const valor = orc.valor;
+
+      // Evita duplicidade
+      const osExistente = window.osList.find(os =>
+        os.clienteId === clienteId &&
+        os.veiculoIdx === veiculoIdx &&
+        os.valor === valor &&
+        os.descricao === descricao
+      );
+      if (osExistente) {
+        notificar("Já existe uma OS gerada para este orçamento.");
+        return;
+      }
+
+      // Datas padrão para hoje
+      const hoje = new Date().toISOString().split('T')[0];
+      const pagamento = "Dinheiro";
+      const entrada = hoje;
+      const saida = hoje;
+      const status = "Em andamento";
+
+      window.osList.push({
+        id: gerarId(window.osList),
+        clienteId,
+        veiculoIdx,
+        descricao,
+        valor,
+        pagamento,
+        entrada,
+        saida,
+        status
+      });
+
+      saveData();
+      renderOS();
+      renderRelatorio();
+      notificar("OS gerada automaticamente!");
+    }
+    // FIM DO GERAR OS AUTOMÁTICO
+
     function showOrcamentoForm(editId) {
       document.getElementById('orc-form-wrap').classList.remove('hide');
       document.getElementById('orc-form-title').textContent = editId ? "Editar Orçamento" : "Novo Orçamento";
@@ -981,6 +1028,7 @@
   </script>
 
 
-</body>
 
-</html>
+
+
+</body></html>
