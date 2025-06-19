@@ -226,9 +226,9 @@
     }
 
     .btn-outline {
-        background: none;
-        color: var(--primary);
-        border: 1px solid var(--primary);
+        background: var(--success);
+        color: var(--white);
+        border: 1px solid var(--white);
     }
 
     .btn[disabled] {
