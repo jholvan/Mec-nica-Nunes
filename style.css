@@ -21,24 +21,27 @@
         color: var(--text);
         min-height: 100vh;
     }
+
     .logo-upload {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0.75em 0 1em;
-      background: #fff3;
-      gap: 0.6em;
-      font-size: .95em;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.75em 0 1em;
+        background: #fff3;
+        gap: 0.6em;
+        font-size: .95em;
     }
+
     .logo-upload input[type="file"] {
-      font-size: .96em;
+        font-size: .96em;
     }
+
     .logo-preview {
-      max-width: 100px;
-      max-height: 48px;
-      margin-bottom: .3em;
-      border-radius: 4px;
-      object-fit: contain;
+        max-width: 100px;
+        max-height: 48px;
+        margin-bottom: .3em;
+        border-radius: 4px;
+        object-fit: contain;
     }
 
     .container {
@@ -272,6 +275,31 @@
     textarea:focus {
         border-color: var(--secondary);
         outline: none;
+    }
+
+    /* Garante que o campo de autocomplete fique abaixo do input e não sobreponha */
+    .autocomplete-wrapper {
+        position: relative;
+        width: 100%;
+        display: flex;
+        gap: 7px;
+        margin-bottom: .5em;
+    }
+
+    .autocomplete-items {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        /* Fica logo abaixo do input */
+        border: 1px solid #d4d4d4;
+        z-index: 99;
+        background: #fff;
+        width: 100%;
+        max-height: 170px;
+        overflow-y: auto;
+        border-radius: 0 0 5px 5px;
+        box-shadow: 0 2px 8px #0001;
     }
 
     textarea {
